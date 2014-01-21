@@ -18,7 +18,7 @@ import datetime
 logger = logging.getLogger(__name__)
 HOSTS_LIST = ['0.0.0.0:5000']
 
-class IPMI(object):
+class do_thing(object):
     def __init__(self,args = None, kwargs = None):
        # 预留参数接口,便于扩展初始化
         print 'WORKER IS RUNING....'
@@ -53,7 +53,7 @@ class IPMI(object):
 
 
 def build_workers(workers=3, *args, **kwargs):
-    handle = IPMI(*args, **kwargs)
+    handle = do_thing(*args, **kwargs)
     for i in range(int(workers)):
         t = ThreadWorker(
                 task=args[0][0],
