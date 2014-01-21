@@ -1,18 +1,18 @@
 gearman_frame
 =============
 ## This is a framework based on distributed gearman
-> client:
+> send_job_client:
 
     clients.py --> the gearman clients,reseal the gearman API
     runclients.py --> the clients examples of use
 
-> manage:
+> manage_client:
 
     admin.py --> the queue managemant,get status
     runadmin.py --> the admin clients examples of use
     [*]Since part of the package management needs API,so need "workers.py" and "clients.py" 
 
-> worker:
+> worker_client:
 
     workers.py --> the gearman workers, reseal the gearman API
     runworkers.py --> the workers examples of use,the class worker inherit of methods to achieve

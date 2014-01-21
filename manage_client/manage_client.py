@@ -4,7 +4,7 @@
 # * Author	 : ljingb
 # * Email	 : ljb90@live.cn
 # * Last modified : 2013-11-25 15:48
-# * Filename	 : runadmin.py
+# * Filename	 : manage_client
 # * Description	 :一个简单的gearman的管理客户端,功能:
 #                1.服务的启动(默认端口0.0.0.0:5000)
 #                2.显示服务端的状态(任务队列等的详细情况)
