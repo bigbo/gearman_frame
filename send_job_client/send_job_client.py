@@ -4,7 +4,7 @@
 # * Author	 : ljingb.
 # * Email	 : ljb90@liv.cn
 # * Last modified : 2013-11-22 15:32
-# * Filename	 : runclients.py
+# * Filename	 : send_job_client
 # * Description	 :简单的任务发送脚本,功能:
 #                 1.异步发送多项任务:
 #                   只管向server端发送任务,返回结果只现实任务是否被发送到server端,不统计worker端任务执行结果
