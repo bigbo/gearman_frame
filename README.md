@@ -3,15 +3,23 @@ gearman_frame
 ## This is a framework based on distributed gearman
 > client:
 
-    admin.py --> the queue managemant,get status
     clients.py --> the gearman clients,reseal the gearman API
     runclients.py --> the clients examples of use
-    workers.py --> the gearman workers, reseal the gearman API
-    runworkers.py --> the workers examples of use
+
+> manage:
+
+    admin.py --> the queue managemant,get status
+    runadmin.py --> the admin clients examples of use
+    [*]Since part of the package management needs API,so need "workers.py" and "clients.py" 
+
 > worker:
 
-    runbase.py --> the class worker inherit of methods to achieve,examples of use
-    veryeasyprocess --> a module
+    workers.py --> the gearman workers, reseal the gearman API
+    runworkers.py --> the workers examples of use,the class worker inherit of methods to achieve
+    veryeasyprocess --> a package
+    config.yaml --> the config file
+    eg_worker.py --> a examples of use gearman API
+
 
 # 一.更新:
 > 1.可以获取worker的信息,IP,task,新增可以命名worker名字
