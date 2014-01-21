@@ -4,17 +4,17 @@ gearman_frame
 > send_job_client:
 
     clients.py --> the gearman clients,reseal the gearman API
-    runclients.py --> the clients examples of use
+    send_job_client.py --> the clients examples of use
 
 > manage_client:
 
     admin.py --> the queue managemant,get status
-    runadmin.py --> the admin clients examples of use
+    manage_client.py --> the admin clients examples of use
     [*]Since part of the package management needs API,so need "workers.py" and "clients.py" 
 
 > worker_client:
 
-    workers.py --> the gearman workers, reseal the gearman API
+    worker_client.py --> the gearman workers, reseal the gearman API
     runworkers.py --> the workers examples of use,the class worker inherit of methods to achieve
     veryeasyprocess --> a package
     config.yaml --> the config file
