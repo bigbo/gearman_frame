@@ -19,6 +19,7 @@ gearman_frame
 
 > worker_client:
 
+    相关配置可以根据config.yaml配置
     worker_client.py --> the gearman workers, reseal the gearman API
     runworkers.py --> the workers examples of use,the class worker inherit of methods to achieve
     veryeasyprocess --> a package
