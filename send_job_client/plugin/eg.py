@@ -14,11 +14,10 @@ def get_data():
 #                    'data_pack':                 --->数据包（任务所有数据）
 #                            {   'command':'xxx', --->执行指令
 #                                'argvs':'xxx',   --->指令参数
-#                                'task_queue':'xxx'--->数据保存通道
 #                             }
 #                    ]
                     
     task_list = [
-            {'task_name':'test1', 'data_pack':{'command':'ls','argvs':'./','task_queue':'xxxx'}},
-            {'task_name':'test2', 'data_pack':{'command':'ls','argvs':'./','task_queue':'xxxx'}}]
+            {'task_name':'test1', 'data_pack':{'command':'ls','argvs':'./'}},
+            {'task_name':'test2', 'data_pack':{'command':'ls','argvs':'./'}}]
     return task_list
