@@ -4,9 +4,12 @@ gearman_frame
 整个gearman分布式框架分为三部分:发送任务客户端/管理端/worker端
 
 > send_job_client:
-
+    
+    所有任务发送请遵循plugin中的eg.py中所阐述的规则使用.更多配置信息详见config.yaml
     clients.py --> the gearman clients,reseal the gearman API
     send_job_client.py --> the clients examples of use
+    config.yaml --> the config file of send_job_client
+    [plugin] --> please insert here the plug
 
 > manage_client:
 
