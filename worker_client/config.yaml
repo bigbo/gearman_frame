@@ -1,0 +1,15 @@
+#gearman server host(can be multiple)
+HOSTS_LIST:
+ 10.4.1.186:5000
+
+#command run time out(unit s)
+TIME_OUT:
+ 15
+
+#data storage(0 is print)
+DATA_STORAGE:
+ 0
+
+#debug log(0/1,onely print data of job and run result, not do any thing)
+DEBUG:
+ 0
