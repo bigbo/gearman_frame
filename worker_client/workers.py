@@ -5,7 +5,7 @@
 # * Email	 : ljb90@live.cn
 # * Last modified : 2013-11-18 17:33
 # * Filename	 : workers.py
-# * Description	 :
+# * Description	 : 继承gearman的基类,并进行相应的扩展.
 # * *****************************************************************************/
 
 from gearman.worker import GearmanWorker
@@ -69,7 +69,7 @@ class Worker(GearmanWorker):
 
 #多线程,调用方式为函数回调方法.
 class ThreadWorker(threading.Thread):
-    def __init__(self, task, callback, workername = 'IDC', daemon=False, host_list=['0.0.0.0:5000']):
+    def __init__(self, task, callback, workername = 'workaholic', daemon=False, host_list=['0.0.0.0:5000']):
         threading.Thread.__init__(self)
         self.workername = workername
         self.task = task

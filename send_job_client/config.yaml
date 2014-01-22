@@ -1,0 +1,19 @@
+#gearman server host(can be multiple)
+HOSTS_LIST:
+ 10.4.1.186:5000
+
+#plugin name(Plug-in must in plugin folder)
+PLUGIN_NAME:
+ eg
+
+#send jobs cycle time (unit s)
+CYCLE:
+ 0.5
+
+#update job's data time (unit min)
+UPDATE:
+ 1
+
+#debug (0/1,0 is print)
+DEBUG:
+ 0

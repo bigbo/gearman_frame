@@ -1,6 +1,8 @@
 gearman_frame
 =============
 ## This is a framework based on distributed gearman
+整个gearman分布式框架分为三部分:发送任务客户端/管理端/worker端
+
 > send_job_client:
 
     clients.py --> the gearman clients,reseal the gearman API
