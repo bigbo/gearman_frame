@@ -182,7 +182,7 @@ if __name__=="__main__":
     if sys.argv[1] != 'stop':
         threads = Double_Thread(True)
         threads.start()
-        time.sleep(0.3)
+        time.sleep(UPDATE)
 
     while 1:
         if not DATA_LIST and sys.argv[1] != 'stop':
