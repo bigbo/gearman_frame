@@ -109,6 +109,7 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
         return sys.exit()
 
     for tasks in data_for_process:
+        assert isinstance(tasks, dict)
         list_of_jobs.append(dict(task=tasks['task_name'], data=json.dumps(tasks['data_pack'])))
 
     submitted_requests = client.send_jobs(
@@ -184,6 +185,7 @@ if __name__=="__main__":
         threads.start()
         time.sleep(UPDATE)
 
+    assert isinstance(DATA_LIST, list)
     while 1:
         if not DATA_LIST and sys.argv[1] != 'stop':
             continue
