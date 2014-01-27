@@ -28,6 +28,7 @@ UPDATE = None
 DEBUG = None
 DATA_LIST = []
 IMPORT_MODULE = None
+STATUS = 0
 
 sys.path.insert(0,sys.path[0]+'/plugin')
 
@@ -108,6 +109,10 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
         print 'transfer mode error !'
         return sys.exit()
 
+    if not data_for_process:
+        print "the jobs list is null!"
+        return -1
+
     for tasks in data_for_process:
         assert isinstance(tasks, dict)
         list_of_jobs.append(dict(task=tasks['task_name'], data=json.dumps(tasks['data_pack'])))
@@ -129,7 +134,7 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
         for completed_job_request in completed_requests:
             check_request_status(completed_job_request)
 
-    return None
+    return 0
 
 
 class Double_Thread(threading.Thread):
@@ -140,6 +145,8 @@ class Double_Thread(threading.Thread):
     def run(self):
         global IMPORT_MODULE
         global DATA_LIST
+        global STATUS
+
         while 1:
             if self.daemon:
                 print "daemon thread,update data!"
@@ -149,7 +156,9 @@ class Double_Thread(threading.Thread):
                 DATA_LIST = IMPORT_MODULE.get_data()
             if DEBUG:
                 print "DATA_LIST:", DATA_LIST
-            time.sleep(UPDATE*60)
+            if STATUS == 0:
+                time.sleep(UPDATE*60)
+            STATUS = 0
 
 def How_Use():
      print ('''\
@@ -177,6 +186,7 @@ if __name__=="__main__":
     'sync' : Transfer_Mode,
     'stop' : Transfer_Mode
         }
+
     if not len(sys.argv) >= 2:
         How_Use()
         sys.exit()
@@ -185,13 +195,17 @@ if __name__=="__main__":
         threads.start()
         time.sleep(UPDATE)
 
-    assert isinstance(DATA_LIST, list)
     while 1:
-        if not DATA_LIST and sys.argv[1] != 'stop':
+       assert isinstance(DATA_LIST, list)
+       if not DATA_LIST and sys.argv[1] != 'stop':
+           STATUS = -1
+           time.sleep(UPDATE)
             continue
 
         try :
-            commands[sys.argv[1]](data_for_process = DATA_LIST,back_ground = sys.argv)
+            STATUS = commands[sys.argv[1]](data_for_process = DATA_LIST,back_ground = sys.argv)
+            if STATUS == -1:
+                time.sleep(UPDATE)
         except:
             How_Use()
             break
