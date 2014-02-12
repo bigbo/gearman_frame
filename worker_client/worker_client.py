@@ -9,8 +9,9 @@
 # * *****************************************************************************/
 
 from workers import Worker, ThreadWorker
+from clients import Client
 import json
-import os,sys
+import sys
 import logging
 import veasyprocess
 import datetime
@@ -19,7 +20,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 HOSTS_LIST = None
-DATA_SAVE = None
+RETRY = None
 TIME_OUT = 3
 DEBUG = 0
 
@@ -27,7 +28,7 @@ class do_thing(object):
     def __init__(self, config_file = 'config.yaml'):
         global HOSTS_LIST
         global TIME_OUT
-        global DATA_SAVE
+        global RETRY
         global DEBUG
         try:
             open_config = open(config_file)
@@ -41,9 +42,9 @@ class do_thing(object):
             print 'HOSTS_LIST in config.yaml init error,please checking!'
             sys.exit()
         try:
-            DATA_SAVE = load_config['DATA_STORAGE']
+            RETRY = int(load_config['RETRY'])
         except:
-            print 'DATA_SAVE in config.yaml init error,please checking!'
+            print 'RETRY in config.yaml init error,please checking!'
             sys.exit()
         try:
             if load_config['TIME_OUT']:
@@ -69,27 +70,48 @@ class do_thing(object):
         except Exception, err:
             logger.info(err)
             json_data = {'SHUTDOWN': True}
+        
+        if isinstance(json_data, dict) and json_data.has_key('FAIL'):
+            try:
+                fail_count = int(json_data['MESSAGE'])
+            except:
+                fail_count = 0
+            if json_data['FAIL'] and fail_count > RETRY:
+                client = Client(HOSTS_LIST)
+                submitted_requests = client.send_jobs(
+                        [dict(task=job.task, data = job.data)],
+                        wait_until_complete=True,
+                        background=True)
+            else:
+                print json_data['MESSAGE']
+
         return json.dumps(json_data)
 
 
     def on_callback(self, json_data):
         #执行一些指令等,直接调用veasyprocess中的shell命令
+        #循环尝试执行worker指令次数仅对执行自写脚本起作用:
+        #   out_infos获取的是标准输出(str类型)
+        #   设计为返回数据以空格分隔,第一位为执行指令状态(true/false),第二位为执行次数
+        #   重复执行标准根据第二位的执行次数来做衡量
         table_date = datetime.datetime.now().strftime("%Y_%m_%d")
         cmd_argvs = ('%s \"%s\"') % (json_data['command'], json_data['argvs'])
+        if DEBUG:
+            print ('job_data:%s\n') % json_data
         try:
             status,out_infos = veasyprocess.shell_2_tempfile(_cmd=cmd_argvs,_cwd=None,_timeout=TIME_OUT)
             if not status:
-                print "fail"
-                return {'re':'fail'}
-            elif DATA_SAVE or not DEBUG:
-                print out_infos
+                return {'FAIL': True, 'MESSAGE': -1}
+            if isinstance(out_infos, str) and out_infos.split(' ')[0] == 'False': 
+                return {'FAIL': True, 'MESSAGE': out_infos.split(' ')[1]}
             else:
-                print ('job_data:%s\nresult:%s\n') % (json_data, out_infos)
+                return {'FAIL': False, 'MESSAGE': out_infos}
         except:
-            print "exit"
+            print "error, exit!"
             return {'SHUTDOWN': True}
         print 'Executed successfully!'
-        return json_data
+        return {'SUCCESS': True}
+
 
 def build_workers(workers=3, *args, **kwargs):
     handle = do_thing(*args, **kwargs)
@@ -110,7 +132,7 @@ def How_Use():
          --version :0.1
          --help:Input parameters
          Threads num, workername ,workername
-         eg: python runbase.py 3 test TEST
+         eg: python worker_client.py 3 test TEST
          ''')
 
 if __name__=="__main__":

@@ -6,9 +6,9 @@ HOSTS_LIST:
 TIME_OUT:
  15
 
-#data storage(0 is print)
-DATA_STORAGE:
- 0
+#task retry cycle
+RETRY:
+ 2
 
 #debug log(0/1,onely print data of job and run result, not do any thing)
 DEBUG:

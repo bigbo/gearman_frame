@@ -44,7 +44,9 @@ gearman_frame
 
 > 8.基于clients,编写runclients的任务两种发送事例.
 
-> 9.基于worker端,编写执行workerclients,可以通过终端参数启动相应的worker
+> 9.基于worker端,编写执行workerclients,可以通过终端参数启动相应的worker.
+
+> 10.调整worker端指令执行失败策略,增加失败后重复尝试执行. 
 
 # 二.已知问题:
   [解决]链接超时问题.当到达一定时间后worker端自动停止跳出.
