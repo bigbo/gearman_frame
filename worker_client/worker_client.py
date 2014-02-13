@@ -54,8 +54,6 @@ class do_thing(object):
             sys.exit()
         try:
             DEBUG = load_config['DEBUG']
-            if DEBUG:
-                DATA_SAVE = 0
         except:
             print 'DEBUG in config.yaml init error,please checking!'
             sys.exit()
