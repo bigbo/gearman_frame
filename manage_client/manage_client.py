@@ -12,6 +12,7 @@
 #                4.结束任务(参数:all/['指定任务名'])
 #                5.停止服务
 #                6.查看与服务器的链接状况
+#                7.清空队列
 # * *****************************************************************************/
 
 from admin import Admin
@@ -98,18 +99,31 @@ def clear_workers(task_name = None,priority = 'high'):
 
     return None
 
+def clear_server_list(task_name = None):
+    admin = Admin(HOSTS_LIST)
+    current_status = admin.get_status()
+
+    if not task_name:
+        print "I don't know clear which data list!"
+        return
+    if task_name == 'all':
+        pass
+    else:
+        admin.empty_task(str(task_name))
+
 def How_Use():
      print ('''\
 This progream is gearman admin client.
      Options include:
          --version :0.1
          --help:Input parameters
-         start:is start server
-         status:is show status
-         worker:is get workers
-         clear:is clear workers
-         stop:is stop server
-         ping:is ping server
+         start-server:is start server
+         show-status:is show status
+         get-workers:is get workers
+         stop-worker:is clear workers
+         stop-server:is stop server
+         ping-server:is ping server
+         clear-list :is clear list of server
          ''')
 
 
@@ -127,12 +141,13 @@ def ping_server():
 
 if __name__=="__main__":
     commands = {
-    'start' : start_server,
-    'status' : show_status,
-    'worker' : get_workers,
-    'clear' : clear_workers,
-    'stop' : stop_server,
-    'ping' : ping_server
+    'start-server' : start_server,
+    'show-status' : show_status,
+    'get-workers' : get_workers,
+    'stop-worker' : clear_workers,
+    'stop-server' : stop_server,
+    'ping-server' : ping_server,
+    'clear-list'  : clear_server_list
         }
     if not len(sys.argv) > 1:
         How_Use()

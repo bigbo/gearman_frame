@@ -56,6 +56,7 @@ class Admin(GearmanAdminClient):
         两种效果都不太好,顾需要实际测试处理.
         """
         def callback(worker, job):
+            print "Efforts to clean up the list..."
             return json.dumps({'a': 'a'})
 
         worker = Worker(self.host_list)
