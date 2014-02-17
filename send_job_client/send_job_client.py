@@ -115,6 +115,9 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
 
     for tasks in data_for_process:
         assert isinstance(tasks, dict)
+        if DEBUG:
+            print tasks
+            raw_input('DEBUG,Press Enter to continue:')
         list_of_jobs.append(dict(task=tasks['task_name'], data=json.dumps(tasks['data_pack'])))
 
     submitted_requests = client.send_jobs(
@@ -133,6 +136,7 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
     if DEBUG:
         for completed_job_request in completed_requests:
             check_request_status(completed_job_request)
+        raw_input('DEBUG,Press Enter to continue:')
 
     return 0
 
@@ -156,7 +160,8 @@ class Double_Thread(threading.Thread):
                 DATA_LIST = IMPORT_MODULE.get_data()
             if DEBUG:
                 print "DATA_LIST:", DATA_LIST
-            if STATUS == 0:
+                raw_input("DEBUG,Press Enter to continue:")
+            if STATUS == 0: 
                 time.sleep(UPDATE*60)
             STATUS = 0
 
@@ -195,8 +200,9 @@ if __name__=="__main__":
         threads.start()
         time.sleep(UPDATE)
 
+    assert isinstance(DATA_LIST, list)
+
     while 1:
-       assert isinstance(DATA_LIST, list)
        if not DATA_LIST and sys.argv[1] != 'stop':
            STATUS = -1
            time.sleep(UPDATE)
