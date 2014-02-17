@@ -10,6 +10,7 @@
 
 from workers import Worker, ThreadWorker
 from clients import Client
+from gearman.constants import *
 import json
 import sys
 import logging
@@ -68,21 +69,33 @@ class do_thing(object):
         except Exception, err:
             logger.info(err)
             json_data = {'SHUTDOWN': True}
-        
-        if isinstance(json_data, dict) and json_data.has_key('FAIL'):
+       
+        if DEBUG:
+            print ('request:%s\n') % json_data
+            raw_input('DEBUG,Press Enter to continue:')
+
+        if isinstance(json_data, dict) and json_data.has_key('FLAG'):
+            if json_data['FLAG']:
+                print json_data['MESSAGE']
+            else:
+                if json_data['MESSAGE'] == -1:
+                    print ('request:%s\n') % json_data
             try:
                 fail_count = int(json_data['MESSAGE'])
             except:
-                fail_count = 0
-            if json_data['FAIL'] and fail_count > RETRY:
-                client = Client(HOSTS_LIST)
-                submitted_requests = client.send_jobs(
-                        [dict(task=job.task, data = job.data)],
-                        wait_until_complete=True,
-                        background=True)
+                print ('request is not int ! :[MESSAGE] = %s') % json_data['MESSAGE']
+                return json.dumps(json_data)
+            if fail_count < RETRY:
+                task_name = job.task
             else:
-                print json_data['MESSAGE']
+                task_name = 'error'
 
+            client = Client(HOSTS_LIST)
+            client.send_job(name = str(task_name),
+                            data = job.data,
+                            wait_until_complete = False,
+                            priority = PRIORITY_HIGH)
+        
         return json.dumps(json_data)
 
 
@@ -96,19 +109,20 @@ class do_thing(object):
         cmd_argvs = ('%s \"%s\"') % (json_data['command'], json_data['argvs'])
         if DEBUG:
             print ('job_data:%s\n') % json_data
+            raw_input('DEBUG,Press Enter to continue:')
         try:
             status,out_infos = veasyprocess.shell_2_tempfile(_cmd=cmd_argvs,_cwd=None,_timeout=TIME_OUT)
             if not status:
-                return {'FAIL': True, 'MESSAGE': -1}
+                return {'FLAG': False, 'MESSAGE': -1}
             if isinstance(out_infos, str) and out_infos.split(' ')[0] == 'False': 
-                return {'FAIL': True, 'MESSAGE': out_infos.split(' ')[1]}
-            else:
-                return {'FAIL': False, 'MESSAGE': out_infos}
+                return {'FLAG': False, 'MESSAGE': out_infos.split(' ')[1].replace('\n','')}
+            elif isinstance(out_infos, str) and out_infos.split(' ')[0] == 'True':
+                return {'FLAG': True, 'MESSAGE': out_infos}
         except:
             print "error, exit!"
             return {'SHUTDOWN': True}
         print 'Executed successfully!'
-        return {'SUCCESS': True}
+        return {'FLAG': True, 'MESSAGE': out_infos}
 
 
 def build_workers(workers=3, *args, **kwargs):
