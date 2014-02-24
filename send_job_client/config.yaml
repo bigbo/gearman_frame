@@ -14,6 +14,9 @@ CYCLE:
 UPDATE:
  1
 
-#debug (0/1,1 is print)
+#debug (0/1/2)
+#0:debug is off
+#1:print log of run
+#2:single-step debugging
 DEBUG:
  0
