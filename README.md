@@ -59,8 +59,9 @@ gearman_frame
 
   [解决]详细见包说明.worker端在执行任务的时候(多线程),当某些指令执行超时(设置超时时间)或是任务执行失败,会出现单个worker线程退出(崩溃)
 
+  [解决]shutdown指令在发送关闭worker端执行失败,不能及时关闭worker端(主要问题在于job端发送任务应加入任务优先级状态)
+  
   1.管理端清理server端队列,需要手工干预,效果不好
-  2.shutdown指令在发送关闭worker端执行失败,不能及时关闭worker端
 
 # 三.关于veryeasyprocess包的使用(引用原作者):
 
