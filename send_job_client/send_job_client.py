@@ -14,7 +14,7 @@
 # * *****************************************************************************/
 
 import gearman
-from gearman.constants import JOB_UNKNOWN
+from gearman.constants import * 
 import json
 from clients import Client
 import sys,threading
@@ -90,15 +90,16 @@ def check_request_status(job_request):
     elif job_request.state == JOB_UNKNOWN:
         print "Job %s connection failed!" % job_request.gearman_job.unique
 
-def Transfer_Mode(data_for_process = [], back_ground = 'async'):
-    client = Client(HOSTS_LIST)
+def Transfer_Mode(client, data_for_process = [], back_ground = 'async'):
     jobs_infos = {}
     list_of_jobs = []
 
     if back_ground[1] == 'async':
         back_ground = True
+        wait = False
     elif back_ground[1] == 'sync':
         back_ground = False
+        wait = True
     elif len(back_ground) == 3 and back_ground[1] == 'stop':
         data_for_process = [{
             'task_name':back_ground[2],
@@ -108,7 +109,7 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
     else:
         print 'transfer mode error !'
         return sys.exit()
-
+    
     if not data_for_process:
         print "the jobs list is null!"
         return -1
@@ -117,26 +118,33 @@ def Transfer_Mode(data_for_process = [], back_ground = 'async'):
         assert isinstance(tasks, dict)
         if DEBUG:
             print tasks
-            raw_input('DEBUG,Press Enter to continue:')
-        list_of_jobs.append(dict(task=tasks['task_name'], data=json.dumps(tasks['data_pack'])))
+            if DEBUG == 2:
+                raw_input('DEBUG,Press Enter to continue:')
+
+        list_of_jobs.append(dict(task=tasks['task_name'], 
+                            data=json.dumps(tasks['data_pack']),
+                            priority = PRIORITY_LOW
+                            ))
 
     submitted_requests = client.send_jobs(
                                         list_of_jobs,
-                                        wait_until_complete=True,
+                                        wait_until_complete=wait,
                                         background=back_ground)
+
     print "the total job have: %d" % len(submitted_requests)
+
 #对任务请求后状态的监管方法如下.
 #submit_multiple_requests(jobs_requests, wait_until_complete, poll_timeout)
 #wait_until_jobs_accepted(job_requests, poll_timeout=None)
 #wait_until_jobs_completed(job_requests, poll_timeout=None)
-
 #以第一种方法为事例
-    completed_requests = client.wait_until_jobs_accepted(submitted_requests,poll_timeout = 2)
-
-    if DEBUG:
+        
+    if DEBUG or wait:
+        completed_requests = client.wait_until_jobs_accepted(submitted_requests,poll_timeout = 2)
         for completed_job_request in completed_requests:
             check_request_status(completed_job_request)
-        raw_input('DEBUG,Press Enter to continue:')
+        if DEBUG == 2:
+            raw_input('DEBUG,Press Enter to continue:')
 
     return 0
 
@@ -145,7 +153,7 @@ class Double_Thread(threading.Thread):
     def __init__(self, daemon):
         threading.Thread.__init__(self)
         self.daemon = daemon
-
+    
     def run(self):
         global IMPORT_MODULE
         global DATA_LIST
@@ -160,7 +168,8 @@ class Double_Thread(threading.Thread):
                 DATA_LIST = IMPORT_MODULE.get_data()
             if DEBUG:
                 print "DATA_LIST:", DATA_LIST
-                raw_input("DEBUG,Press Enter to continue:")
+                if DEBUG == 2:
+                    raw_input("DEBUG,Press Enter to continue:")
             if STATUS == 0: 
                 time.sleep(UPDATE*60)
             STATUS = 0
@@ -192,6 +201,8 @@ if __name__=="__main__":
     'stop' : Transfer_Mode
         }
 
+    client = Client(HOSTS_LIST)
+
     if not len(sys.argv) >= 2:
         How_Use()
         sys.exit()
@@ -201,7 +212,7 @@ if __name__=="__main__":
         time.sleep(UPDATE)
 
     assert isinstance(DATA_LIST, list)
-
+    
     while 1:
        if not DATA_LIST and sys.argv[1] != 'stop':
            STATUS = -1
@@ -209,7 +220,7 @@ if __name__=="__main__":
             continue
 
         try :
-            STATUS = commands[sys.argv[1]](data_for_process = DATA_LIST,back_ground = sys.argv)
+            STATUS = commands[sys.argv[1]](client, data_for_process = DATA_LIST, back_ground = sys.argv)
             if STATUS == -1:
                 time.sleep(UPDATE)
         except:
