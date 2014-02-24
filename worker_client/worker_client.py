@@ -20,14 +20,12 @@ import yaml
 
 
 logger = logging.getLogger(__name__)
-HOSTS_LIST = None
 RETRY = None
 TIME_OUT = 3
 DEBUG = 0
 
 class do_thing(object):
     def __init__(self, config_file = 'config.yaml'):
-        global HOSTS_LIST
         global TIME_OUT
         global RETRY
         global DEBUG
@@ -38,7 +36,8 @@ class do_thing(object):
             sys.exit()
         load_config = yaml.load(open_config)
         try:
-            HOSTS_LIST = load_config['HOSTS_LIST'].split(' ')
+            self.hosts_list = load_config['HOSTS_LIST'].split(' ')
+            self.client = Client(self.hosts_list)
         except:
             print 'HOSTS_LIST in config.yaml init error,please checking!'
             sys.exit()
@@ -59,7 +58,7 @@ class do_thing(object):
             print 'DEBUG in config.yaml init error,please checking!'
             sys.exit()
         open_config.close()
-        print 'WORKER IS RUNING....'
+        print 'WORKER CLIENT IS RUNING....'
 
     def callback(self,worker,job):
         json_data = json.loads(job.data)
@@ -72,7 +71,8 @@ class do_thing(object):
        
         if DEBUG:
             print ('request:%s\n') % json_data
-            raw_input('DEBUG,Press Enter to continue:')
+            if DEBUG == 2:
+                raw_input('DEBUG,Press Enter to continue:')
 
         if isinstance(json_data, dict) and json_data.has_key('FLAG'):
             if json_data['FLAG']:
@@ -80,22 +80,23 @@ class do_thing(object):
             else:
                 if json_data['MESSAGE'] == -1:
                     print ('request:%s\n') % json_data
-            try:
-                fail_count = int(json_data['MESSAGE'])
-            except:
-                print ('request is not int ! :[MESSAGE] = %s') % json_data['MESSAGE']
-                return json.dumps(json_data)
-            if fail_count < RETRY:
-                task_name = job.task
-            else:
-                task_name = 'error'
+                    return json.dumps(json_data)
+                try:
+                    message = int(json_data['MESSAGE'])
+                except (TypeError, ValueError):
+                    print ('request is not int !:[MESSAGE] = %s') % json_data['MESSAGE']
+                    return json.dumps(json_data)
+                if message % RETRY == 0:
+                    task_name = job.task
+                else:
+                    task_name = 'update'
 
-            client = Client(HOSTS_LIST)
-            client.send_job(name = str(task_name),
+            self.client.send_job(name = str(task_name),
                             data = job.data,
                             wait_until_complete = False,
-                            priority = PRIORITY_HIGH)
-        
+                            background = True,
+                            priority = PRIORITY_NONE)
+
         return json.dumps(json_data)
 
 
@@ -109,7 +110,8 @@ class do_thing(object):
         cmd_argvs = ('%s \"%s\"') % (json_data['command'], json_data['argvs'])
         if DEBUG:
             print ('job_data:%s\n') % json_data
-            raw_input('DEBUG,Press Enter to continue:')
+            if DEBUG == 2:
+                raw_input('DEBUG,Press Enter to continue:')
         try:
             status,out_infos = veasyprocess.shell_2_tempfile(_cmd=cmd_argvs,_cwd=None,_timeout=TIME_OUT)
             if not status:
@@ -132,7 +134,7 @@ def build_workers(workers=3, *args, **kwargs):
                 task=args[0][0],
                 callback = handle.callback,
                 workername = args[0][1],
-                host_list = HOSTS_LIST
+                host_list = handle.hosts_list
                 )
         t.start()
 

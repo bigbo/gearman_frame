@@ -10,6 +10,9 @@ TIME_OUT:
 RETRY:
  2
 
-#debug log(0/1,onely print data of job and run result, not do any thing)
+#debug log(0/1)
+#0:debug is off
+#1:print log of run
+#2:single-step debugging
 DEBUG:
  0
