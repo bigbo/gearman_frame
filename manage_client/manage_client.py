@@ -44,32 +44,22 @@ def get_workers(task_name = None):
 
     if not task_name:
         for i in workers:
-            print "the IP:%s---Worker_name:%s---Task_name:%s"%(i['ip'],i['client_id'],i['tasks'])
+            print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
     else:
         for i in workers:
             if task_name and i['tasks'][0] == task_name:
-                print "the IP:%s---Worker_name:%s---Task_name:%s"%(i['ip'],i['client_id'],i['tasks'])
+                print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
     return workers
 
 
 def send_task(task_name, json_data, priority=PRIORITY_NONE):
     client = Client(HOSTS_LIST)
     client.send_job(name=task_name, data=json.dumps(json_data),
-                    wait_until_complete=False, priority=priority)
+                    wait_until_complete=False, background=True, priority=priority)
     print ("Dispatch a task name %s, %r" %(task_name, json_data))
 
 
-def clear_worker(task_name = None, priority = 'high'):
-    p = {
-      'high': PRIORITY_HIGH,
-      'normal': PRIORITY_NONE,
-      'low': PRIORITY_LOW
-        }
-
-    send_task(task_name, {'SHUTDOWN': True}, p.get(priority, PRIORITY_NONE))
-
-
-def clear_workers(task_name = None,priority = 'high'):
+def clear_workers(task_name = None,priority = PRIORITY_HIGH):
     admin = Admin(HOSTS_LIST)
     current_status = admin.get_status()
     num = 0
@@ -84,7 +74,7 @@ def clear_workers(task_name = None,priority = 'high'):
             num = 0
             num = int(status['workers'])
             for i in range(num):
-                clear_worker(status['task'], priority=priority)
+                send_task(status['task'], {'SHUTDOWN': True},priority)
     else:
         for status in current_status:
             if status['task'] == task_name:
@@ -92,8 +82,7 @@ def clear_workers(task_name = None,priority = 'high'):
             print status
 
         for i in range(num):
-            clear_worker(task_name, priority=priority)
-
+            send_task(task_name,{'SHUTDOWN': True},priority)
         if num == 0:
             print "Task list no have name is '%s'  task!" % task_name
 
@@ -109,6 +98,8 @@ def clear_server_list(task_name = None):
     if task_name == 'all':
         pass
     else:
+        num = [i['queued'] for i in current_status if task_name == i['task']]
+        print "the list len:%d" % num[0]
         admin.empty_task(str(task_name))
 
 def How_Use():
