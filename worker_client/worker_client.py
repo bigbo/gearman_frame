@@ -24,6 +24,12 @@ RETRY = None
 TIME_OUT = 3
 DEBUG = 0
 
+def DEBUG_MODE(debug, data):
+    if debug:
+        print ('log:%s\n') % data
+        if debug == 2:
+            raw_input('DEBUG,Press Enter to continue:')
+
 class do_thing(object):
     def __init__(self, config_file = 'config.yaml'):
         global TIME_OUT
@@ -68,11 +74,8 @@ class do_thing(object):
         except Exception, err:
             logger.info(err)
             json_data = {'SHUTDOWN': True}
-       
-        if DEBUG:
-            print ('request:%s\n') % json_data
-            if DEBUG == 2:
-                raw_input('DEBUG,Press Enter to continue:')
+
+        DEBUG_MODE(DEBUG, json_data)
 
         if isinstance(json_data, dict) and json_data.has_key('FLAG'):
             if json_data['FLAG']:
@@ -86,7 +89,7 @@ class do_thing(object):
                 except (TypeError, ValueError):
                     print ('request is not int !:[MESSAGE] = %s') % json_data['MESSAGE']
                     return json.dumps(json_data)
-                if message % RETRY == 0:
+                if message % RETRY != 0:
                     task_name = job.task
                 else:
                     task_name = 'update'
@@ -108,10 +111,7 @@ class do_thing(object):
         #   重复执行标准根据第二位的执行次数来做衡量
         table_date = datetime.datetime.now().strftime("%Y_%m_%d")
         cmd_argvs = ('%s \"%s\"') % (json_data['command'], json_data['argvs'])
-        if DEBUG:
-            print ('job_data:%s\n') % json_data
-            if DEBUG == 2:
-                raw_input('DEBUG,Press Enter to continue:')
+        DEBUG_MODE(DEBUG, json_data)
         try:
             status,out_infos = veasyprocess.shell_2_tempfile(_cmd=cmd_argvs,_cwd=None,_timeout=TIME_OUT)
             if not status:

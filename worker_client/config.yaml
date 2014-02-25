@@ -1,6 +1,6 @@
 #gearman server host(can be multiple)
 HOSTS_LIST:
- 192.168.0.100:5000
+ 0.0.0.0:5000
 
 #command run time out(unit s)
 TIME_OUT:
