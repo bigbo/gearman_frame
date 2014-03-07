@@ -20,87 +20,150 @@ import time
 import sys
 from clients import Client
 import json
+import logging
+import logging.config
 from gearman.constants import *
 
 #服务启动ip+端口,建议使用脚本前先设置,默认端口为本机的5000
 HOSTS_LIST = ['0.0.0.0:5000']
 
-def show_status():
-    admin = Admin(HOSTS_LIST)
-    current_status = admin.get_status()
-    num = 0
+formatter_dict = {
+    1 : logging.Formatter("%(message)s"),
+    2 : logging.Formatter("%(levelname)s - %(message)s"),
+    3 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"),
+    4 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - [%(name)s]"),
+    5 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - [%(name)s:%(lineno)s]")
+    }
+class Logger(object):
+    def __init__(self, logname, loglevel, callfile):
+        """
+            指定日志文件路径，日志级别，以及调用文件
+            将日志存入到指定的文件中
+        """
+        self.logger = logging.getLogger(callfile)
+        self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler(logname)
 
-    for status in current_status:
-        print status
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.ERROR)
+        ch.setFormatter(formatter_dict[int(loglevel)])
+        fh.setFormatter(formatter_dict[int(loglevel)])
+        self.logger.addHandler(ch)
+        self.logger.addHandler(fh)
 
-def get_workers(task_name = None):
-    workers = []
-    admin = Admin(HOSTS_LIST)
-    for w in admin.get_workers():
-        if w['tasks']:
-            workers.append( w )
+    def get_logger(self):
+        return self.logger
 
-    print "totla workers: %d" % (len(workers))
-
-    if not task_name:
-        for i in workers:
-            print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
-    else:
-        for i in workers:
-            if task_name and i['tasks'][0] == task_name:
-                print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
-    return workers
-
-
-def send_task(task_name, json_data, priority=PRIORITY_NONE):
-    client = Client(HOSTS_LIST)
-    client.send_job(name=task_name, data=json.dumps(json_data),
-                    wait_until_complete=False, background=True, priority=priority)
-    print ("Dispatch a task name %s, %r" %(task_name, json_data))
+class Gearman_Manage(object):
+    def __init__(self, host_list = ['0.0.0.0:5000']):
+        """初始化服务端/客户端服务 """
+        try:
+            self.server = Admin(host_list)
+            self.client = Client(host_list)
+        except:
+            print "Gearman server host port is error!"
+            sys.exit()
+        self.logger = Logger(logname='log/log.txt', loglevel = 3, callfile = __file__).get_logger()
 
 
-def clear_workers(task_name = None,priority = PRIORITY_HIGH):
-    admin = Admin(HOSTS_LIST)
-    current_status = admin.get_status()
-    num = 0
-
-    if not task_name:
-        print "I don't know which worker will be clear!"
-        return
-
-    if task_name == 'all':
+    def show_status(self):
+        """查看server状态信息"""
+        current_status = self.server.get_status()
+        num = 0
 
         for status in current_status:
-            num = 0
-            num = int(status['workers'])
-            for i in range(num):
-                send_task(status['task'], {'SHUTDOWN': True},priority)
-    else:
-        for status in current_status:
-            if status['task'] == task_name:
-                num = int(status['workers'])
             print status
 
-        for i in range(num):
-            send_task(task_name,{'SHUTDOWN': True},priority)
-        if num == 0:
-            print "Task list no have name is '%s'  task!" % task_name
+    def get_worker(self, task_name = None):
+        """查看worker端状态信息"""
+        workers = []
+        for w in self.server.get_workers():
+            if w['tasks']:
+                workers.append( w )
 
-    return None
+        print "totla workers: %d" % (len(workers))
 
-def clear_server_list(task_name = None):
-    admin = Admin(HOSTS_LIST)
-    current_status = admin.get_status()
+        if not task_name:
+            for i in workers:
+                print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
+        else:
+            for i in workers:
+                if task_name and i['tasks'][0] == task_name:
+                    print "the IP:[%s]---Worker_name:[%s]---Task_name:[%s]"%(i['ip'],i['client_id'],i['tasks'])
+        return workers
 
-    if not task_name:
-        print "I don't know clear which data list!"
-        return
-    if task_name == 'all':
-        pass
-    else:
-        num = [i['queued'] for i in current_status if task_name == i['task']]
-        print "the list len:%d" % num[0]
-        admin.empty_task(str(task_name))
+
+    def send_task(self, task_name, json_data, priority=PRIORITY_NONE):
+        """发送控制指令"""
+        self.client.send_job(name=task_name, data=json.dumps(json_data),
+                        wait_until_complete=False, background=True, priority=priority)
+        print ("Dispatch a task name %s, %r" %(task_name, json_data))
+        self.logger.info("Dispatch a task name %s, %r" %(task_name, json_data))
+
+
+    def clear_workers(self, task_name = None,priority = PRIORITY_HIGH):
+        """关闭worker"""
+        current_status = self.server.get_status()
+        num = 0
+
+        if not task_name:
+            print "I don't know which worker will be clear!"
+            return
+
+        if task_name == 'all':
+            for status in current_status:
+                num = 0
+                num = int(status['workers'])
+                for i in range(num):
+                    self.send_task(status['task'], {'SHUTDOWN': True},priority)
+                print "stop worker total:%d" % num
+        else:
+            for status in current_status:
+                if status['task'] == task_name:
+                    num = int(status['workers'])
+                print status
+
+            for i in range(num):
+                self.send_task(task_name,{'SHUTDOWN': True},priority)
+            print "stop worker total:%d" % num
+            if num == 0:
+                print "Task list no have name is '%s'  task!" % task_name
+
+        return None
+
+    def clear_server_list(self, task_name = None):
+        """清理server job 队列"""
+        current_status = self.server.get_status()
+
+        if not task_name:
+            print "I don't know clear which data list!"
+            return
+        if task_name == 'all':
+            pass
+        else:
+            num = [i['queued'] for i in current_status if task_name == i['task']]
+            print "the list len:%d" % num[0]
+            self.server.empty_task(str(task_name))
+
+    def start_server(self, prot = 5000):
+        """启动服务器"""
+        self.server.start_server(prot)
+        self.logger.info("start server.")
+        
+    def stop_server(self):
+        """停止服务器"""
+        try:
+            self.server.send_shutdown()
+            self.logger.info("stop server.")
+        except:
+            print "server is not run!"
+
+    def ping_server(self):
+        """查看服务器连通状况"""
+        try:
+            print self.server.get_response_time()
+        except:
+            print "server is not run!"
 
 def How_Use():
      print ('''\
@@ -118,33 +181,24 @@ This progream is gearman admin client.
          ''')
 
 
-def start_server(prot = 5000):
-    admin = Admin(HOSTS_LIST)
-    admin.start_server(prot)
-
-def stop_server():
-    admin = Admin(HOSTS_LIST)
-    admin.send_shutdown()
-
-def ping_server():
-    admin = Admin(HOSTS_LIST)
-    print admin.get_response_time()
-
 if __name__=="__main__":
+    handle = Gearman_Manage(HOSTS_LIST)
     commands = {
-    'start-server' : start_server,
-    'show-status' : show_status,
-    'get-workers' : get_workers,
-    'stop-worker' : clear_workers,
-    'stop-server' : stop_server,
-    'ping-server' : ping_server,
-    'clear-list'  : clear_server_list
+    'start-server' : handle.start_server,
+    'show-status' : handle.show_status,
+    'get-workers' : handle.get_worker,
+    'stop-worker' : handle.clear_workers,
+    'stop-server' : handle.stop_server,
+    'ping-server' : handle.ping_server,
+    'clear-list'  : handle.clear_server_list
         }
     if not len(sys.argv) > 1:
         How_Use()
         sys.exit()
-    if len(sys.argv) == 2:
-        commands[sys.argv[1]]()
-    else:
-        commands[sys.argv[1]](sys.argv[2])
-
+    try:
+        if len(sys.argv) == 2:
+            commands[sys.argv[1]]()
+        else:
+            commands[sys.argv[1]](sys.argv[2])
+    except:
+        How_Use()
