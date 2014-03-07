@@ -57,13 +57,14 @@ class Logger(object):
 class Gearman_Manage(object):
     def __init__(self, host_list = ['0.0.0.0:5000']):
         """初始化服务端/客户端服务 """
+        self.logger = Logger(logname='log/log.txt', loglevel = 3, callfile = __file__).get_logger()
         try:
             self.server = Admin(host_list)
             self.client = Client(host_list)
         except:
             print "Gearman server host port is error!"
+            self.logger.error("Dispatch a task name %s, %r" %(task_name, json_data))
             sys.exit()
-        self.logger = Logger(logname='log/log.txt', loglevel = 3, callfile = __file__).get_logger()
 
 
     def show_status(self):
@@ -149,7 +150,7 @@ class Gearman_Manage(object):
         """启动服务器"""
         self.server.start_server(prot)
         self.logger.info("start server.")
-        
+
     def stop_server(self):
         """停止服务器"""
         try:
