@@ -16,7 +16,13 @@ UPDATE:
 
 #debug (0/1/2)
 #0:debug is off
-#1:print log of run
+#1:print log and save debug log of run
 #2:single-step debugging
 DEBUG:
+ 0
+
+#log
+#0:save the system log and error log
+#1:save all log
+LOG:
  0
