@@ -20,39 +20,11 @@ import time
 import sys
 from clients import Client
 import json
-import logging
-import logging.config
 from gearman.constants import *
+from loger import Logger 
 
 #服务启动ip+端口,建议使用脚本前先设置,默认端口为本机的5000
 HOSTS_LIST = ['0.0.0.0:5000']
-
-formatter_dict = {
-    1 : logging.Formatter("%(message)s"),
-    2 : logging.Formatter("%(levelname)s - %(message)s"),
-    3 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"),
-    4 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - [%(name)s]"),
-    5 : logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - [%(name)s:%(lineno)s]")
-    }
-class Logger(object):
-    def __init__(self, logname, loglevel, callfile):
-        """
-            指定日志文件路径，日志级别，以及调用文件
-            将日志存入到指定的文件中
-        """
-        self.logger = logging.getLogger(callfile)
-        self.logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(logname)
-
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.ERROR)
-        ch.setFormatter(formatter_dict[int(loglevel)])
-        fh.setFormatter(formatter_dict[int(loglevel)])
-        self.logger.addHandler(ch)
-        self.logger.addHandler(fh)
-
-    def get_logger(self):
-        return self.logger
 
 class Gearman_Manage(object):
     def __init__(self, host_list = ['0.0.0.0:5000']):
