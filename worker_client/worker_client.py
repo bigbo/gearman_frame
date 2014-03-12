@@ -18,7 +18,6 @@ import veasyprocess
 import datetime
 import yaml
 
-
 logger = logging.getLogger(__name__)
 RETRY = None
 TIME_OUT = 3
@@ -80,6 +79,7 @@ class do_thing(object):
         if isinstance(json_data, dict) and json_data.has_key('FLAG'):
             if json_data['FLAG']:
                 print json_data['MESSAGE']
+                return json.dumps(json_data['MESSAGE'])
             else:
                 if json_data['MESSAGE'] == -1:
                     print ('request:%s\n') % json_data
@@ -104,11 +104,12 @@ class do_thing(object):
 
 
     def on_callback(self, json_data):
-        #执行一些指令等,直接调用veasyprocess中的shell命令
-        #循环尝试执行worker指令次数仅对执行自写脚本起作用:
-        #   out_infos获取的是标准输出(str类型)
-        #   设计为返回数据以空格分隔,第一位为执行指令状态(true/false),第二位为执行次数
-        #   重复执行标准根据第二位的执行次数来做衡量
+        """执行一些指令等,直接调用veasyprocess中的shell命令
+            循环尝试执行worker指令次数仅对执行自写脚本起作用:
+            out_infos获取的是标准输出(str类型)
+            设计为返回数据以空格分隔,第一位为执行指令状态(true/false),第二位为执行次数
+            重复执行标准根据第二位的执行次数来做衡量
+        """
         table_date = datetime.datetime.now().strftime("%Y_%m_%d")
         cmd_argvs = ('%s \"%s\"') % (json_data['command'], json_data['argvs'])
         DEBUG_MODE(DEBUG, json_data)
