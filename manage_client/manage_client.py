@@ -174,4 +174,5 @@ if __name__=="__main__":
         else:
             commands[sys.argv[1]](sys.argv[2])
     except:
+        print "server will not run or command have errro!"
         How_Use()
