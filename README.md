@@ -1,5 +1,15 @@
 gearman_frame
 =============
+
+## Install the dependence
+
+> gearmand:
+    yum install -y boost-headers boost-devel gperf libevent-devel libuuid-devel
+
+> client：
+    yum install -y YAML (python)
+    easy_install/pip gearman
+
 ## This is a framework based on distributed gearman
 整个gearman分布式框架分为三部分:发送任务客户端/管理端/worker端
 
